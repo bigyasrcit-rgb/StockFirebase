@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Stock Counter</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, button { padding: 10px; margin: 5px; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<h2>ระบบนับสต็อก</h2>
+
+<input id="barcode" placeholder="สแกนบาร์โค้ด">
+<input id="qty" type="number" value="1">
+<button onclick="addStock()">เพิ่มสต็อก</button>
+
+<p id="status"></p>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ใส่ firebaseConfig ของคุณตรงนี้
+const firebaseConfig = {
+  apiKey: "AIzaSyCkysbaxQxx9vHV3Ibwc48-Zdz2Zzklo9w",
+  authDomain: "stock100-1e45d.firebaseapp.com",
+  projectId: "stock100-1e45d",
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.addStock = async function () {
+  const barcode = document.getElementById("barcode").value;
+  const qty = parseInt(document.getElementById("qty").value);
+  const status = document.getElementById("status");
+
+  if (!barcode) {
+    status.textContent = "กรุณาใส่บาร์โค้ด";
+    return;
+  }
+
+  const ref = doc(db, "products", barcode);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    await updateDoc(ref, {
+      stock: increment(qty)
+    });
+    status.textContent = "เพิ่มสต็อกแล้ว";
+  } else {
+    await setDoc(ref, {
+      stock: qty
+    });
+    status.textContent = "สร้างสินค้าใหม่และเพิ่มสต็อก";
+  }
+
+  document.getElementById("barcode").value = "";
+};
+</script>
+
+</body>
+</html>
